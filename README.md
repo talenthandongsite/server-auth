@@ -23,13 +23,7 @@
 # Auth Server
 Server to provide authentication and authorization of talent-handong.site.
 
-## Background
-TBD
-
-### Motivation
-TBD
-
-### History
+## Motivation
 TBD
 
 ## Architecture
@@ -58,7 +52,7 @@ Content-type: application/json
 ## Create User
 ### Request
 ```
-POST /auth/user
+POST /admin/user
 Content-type: application/json
 {...userData}
 ```
@@ -74,7 +68,7 @@ Content-type: application/json
 ## Read User
 ### Request
 ```
-GET /auth/user
+GET /admin/user
 ```
 ### Response
 ```
@@ -87,7 +81,7 @@ Content-type: application/json
 ## Update User
 ### Request
 ```
-PUT /auth/user/{id}
+PUT /admin/user/{id}
 Content-type: application/json
 {...userData}
 ```
@@ -104,7 +98,7 @@ Content-type: application/json
 ## Delete User 
 ### Request
 ```
-DELETE /auth/user/{id}
+DELETE /admin/user/{id}
 ```
 ### Response
 ```
