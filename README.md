@@ -24,11 +24,27 @@
 Server to provide authentication and authorization of talent-handong.site.
 
 ## Motivation
-TBD
+Some HGT tools includes confidential information, so it needs some kind of access control over resources.
+
+Also HGT is Kakao Talk based community, and Kakao Talk provides [OAuth2.0](https://datatracker.ietf.org/doc/html/rfc6749) compatible [login servic](https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api).
+
+## Restrictions
+- HGT is closed community and new registration must be authorized by administrator
+- [Kakao Talk sign in](https://developers.kakao.com/docs/latest/ko/kakaologin/rest-api) should be implemented
 
 ## Architecture and Process
-TBD
+<img src="assets/architecture.png" style="max-width:800px;display:block;margin-left:auto;margin-right:auto"/>
 
+### Sign in / Sign up Process
+1. From client, start Kakao login process. When process ends, Kakao talk issues a token
+2. Client send token to server
+3. Server validate token and get information in it
+4. Update information to database
+
+### CRUD Process
+1. Client calls API
+2. Do crud on database
+3. Return result to client
 
 # REST API
 
