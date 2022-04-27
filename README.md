@@ -198,7 +198,7 @@ Content-type: application/json
         </tr>
         <tr>
             <td>PENDING</td>
-            <td>Default value. This user access to nothing but should be updated to MEMBER</td>
+            <td>Default value. This user access to nothing but would be updated to MEMBER</td>
         </tr>
         <tr>
             <td>BANNED</td>
