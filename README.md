@@ -9,7 +9,7 @@
 > Notes
 >
 > - When it is done, test it with postman   
-> - Use talent-handong Atlas DB (its USERNAME and PASSWORD is in Google Drive)  
+> - Use talent-handong Atlas DB (its USERNAME and PASSWORD is in Google Drive, contact Fernando_kim for 2factor access)  
 > - Make new collection 'user' in the DB, data should be stored in the 'user' collection.  
 > - Note that in mongodb all fields will converted to lowercase. (accessControl->accesscontrol) It is expected and just let it do this way.
 > - When implementing Create User, field 'passphrase' must be presented. Find a way to validate this.
@@ -26,10 +26,7 @@ Server to provide authentication and authorization of talent-handong.site.
 ## Motivation
 TBD
 
-## Architecture
-TBD
- 
-## Process
+## Architecture and Process
 TBD
 
 
