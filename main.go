@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -15,6 +16,8 @@ const PORT string = "8080"
 func main() {
 	ctx := context.Background()
 
+	fmt.Println("Starting Talent Server")
+
 	client, err := durable.GetClient(ctx)
 	if err != nil {
 		log.Println(err)
@@ -25,6 +28,10 @@ func main() {
 	handler := handler.InitUserHandler(repo)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.Handle)
+
+	mux.HandleFunc("/admin/user", handler.HandleCreateRead)
+	mux.HandleFunc("/admin/user/", handler.HandleUpdateDelete)
+	// mux.HandleFunc(("/"))
+
 	http.ListenAndServe(":"+PORT, mux)
 }

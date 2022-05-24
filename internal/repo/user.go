@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -63,4 +64,63 @@ func (repo *UserRepo) Read(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (int, error) {
+	log.Println("DEBUG : in repo Update / updateId = ", updateId)
+
+	objectId, err := primitive.ObjectIDFromHex(updateId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"username":      user.Username,
+			"passphrase":    user.PassPhrase,
+			"accesscontrol": user.AccessControl,
+			"updated":       user.Updated,
+		},
+	}
+
+	updateResult, err := repo.Coll.UpdateOne(
+		ctx,
+		bson.M{"_id": objectId},
+		update,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Updated %v Document!\n", updateResult.ModifiedCount)
+	updateCount := updateResult.ModifiedCount
+
+	if updateCount == 0 {
+		errorStr := "something gone wrong while updating data"
+		err = errors.New(errorStr)
+		return 0, err
+	}
+	return int(updateCount), nil
+}
+
+func (repo *UserRepo) Delete(ctx context.Context, deleteId string) (int, error) {
+	log.Println("DEBUG : in repo Delete / deleteId = ", deleteId)
+
+	objectId, err := primitive.ObjectIDFromHex(deleteId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	deleteResult, err := repo.Coll.DeleteOne(ctx, bson.M{"_id": objectId})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("DeleteOne removed %v document(s)\n", deleteResult.DeletedCount)
+
+	deletedCount := deleteResult.DeletedCount
+	if deletedCount == 0 {
+		errorStr := "something gone wrong while deleting data"
+		err = errors.New(errorStr)
+		return 0, err
+	}
+	return int(deletedCount), nil
 }
