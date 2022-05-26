@@ -8,20 +8,19 @@
 {
     "id": "string",
     "username": "string",
-    "passphrase": "string",
-    "accessControl": "MASTER|SYSTEM|ADMIN|MEMBER|PENDING|BANNED",
-    "created": 1293192,
-    "updated": 1924091,
+    "password": "qjweiogj" // this is temporary. Will be removed in future
+    "email": "johndoe@acme.com",
+    "accessControl": "string enum MASTER|SYSTEM|ADMIN|MEMBER|PENDING|BANNED",
     "activity": [
         {
-            "type": "ADMIN_NOTE|SIGNIN",
+            "type": "string enum CREATED|UPDATED|ADMIN_NOTE|SIGN_IN|KEYCHAIN_UPSERT|KEYCHAIN_DELETE",
             "content": "string",
             "timestamp": 123094102
         }
     ],
     "keyChain": [
         {
-            "type": "PASSPHRASE|KAKAO|API_KEY",
+            "type": "string enum PASSWORD|KAKAO",
             "content": "string",
             "secret": "string",
             "expiration": 12949012905
