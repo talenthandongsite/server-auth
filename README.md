@@ -2,8 +2,8 @@
 > - Get Used to [Github Project](https://github.com/talenthandongsite/server-auth/projects/1)
 > - Implement sign in (both)
 > - Change Data structure (both)
-> - Implement keychain (one of em)
-> - Implement query parameter for Read User (one of em)
+> - Implement keychain (투달)
+> - Implement query parameter for Read User (y3x)
 >
 
 # Auth Server
