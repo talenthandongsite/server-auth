@@ -71,7 +71,7 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 
 	objectId, err := primitive.ObjectIDFromHex(updateId)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	update := bson.M{
@@ -80,6 +80,7 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 			"passphrase":    user.PassPhrase,
 			"accesscontrol": user.AccessControl,
 			"updated":       user.Updated,
+			"adminnote":     user.AdminNote,
 		},
 	}
 
@@ -89,8 +90,9 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 		update,
 	)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
+
 	log.Printf("Updated %v Document!\n", updateResult.ModifiedCount)
 	updateCount := updateResult.ModifiedCount
 
@@ -107,12 +109,12 @@ func (repo *UserRepo) Delete(ctx context.Context, deleteId string) (int, error) 
 
 	objectId, err := primitive.ObjectIDFromHex(deleteId)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
 	deleteResult, err := repo.Coll.DeleteOne(ctx, bson.M{"_id": objectId})
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	log.Printf("DeleteOne removed %v document(s)\n", deleteResult.DeletedCount)
 
