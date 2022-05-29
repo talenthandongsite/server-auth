@@ -159,8 +159,10 @@ Content-type: appication/json
 
 **Request**
 ```http
-DELETE /admin/user/{id}/keychain
+DELETE /admin/user/{id}/keychain/{keyType}
 ```
+
+- Allowed {keyType} is "PASSWORD", "KAKAO"
 
 **Response**
 ```http
