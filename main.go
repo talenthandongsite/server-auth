@@ -26,8 +26,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	repo := repo.InitUserRepo(client)
-	handler := handler.InitUserHandler(repo)
+	repository := repo.InitUserRepo(client)
+
+	handler := handler.InitUserHandler(repository)
 
 	mux.HandleFunc("/admin/user", handler.HandleCreateRead)
 	mux.HandleFunc("/admin/user/", handler.HandleUpdateDelete)
@@ -39,6 +40,22 @@ func main() {
 	mux.Handle("/app/", http.StripPrefix("/app/", app))
 	mux.Handle("/assets", http.StripPrefix("/assets", assets))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", assets))
+
+	var aa repo.AccessControl = repo.PENDING
+	fmt.Print(aa)
+
+	var t repo.Type1 = repo.ADMIN_NOTE
+	fmt.Print(t)
+
+	// switch t {
+	// case repo.MASTER:
+	// 	fmt.Println("Master Picked")
+	// case repo.ADMIN:
+	// 	fmt.Println("Admin Picked")
+	// default:
+	// 	fmt.Println("Default")
+	// }
+	// fmt.Print(repo.MASTER.String())
 
 	http.ListenAndServe(":"+PORT, mux)
 }

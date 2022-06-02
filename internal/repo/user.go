@@ -15,14 +15,93 @@ const USER_COLLECTION_NAME = "user"
 
 type User struct {
 	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
-	ExternalID    string `json:"externalId,omitempty"`
 	Username      string `json:"username,omitempty"`
-	PassPhrase    string `json:"passPhrase,omitempty"`
-	AccessControl string `json:"accessControl,omitempty"`
-	Created       int64  `json:"created,omitempty"`
-	Updated       int64  `json:"updated,omitempty"`
-	LastAccess    int64  `json:"lastAccess,omitempty"`
-	AdminNote     string `json:"adminNote,omitempty"`
+	Password      string `json:"password,omitempty"`
+	Email         string `json:"email,omitempty"`
+	AccessControl Type1
+	Activity      []ActivityItem `bson:"inline"`
+	KeyChain      []KeyChainItem `bson:"inline"` // `json:",inline" bson:",inline"`
+}
+
+type Type1 string
+
+const (
+	CREATED         Type1 = "CREATED"
+	UPDATED               = "UPDATED"
+	ADMIN_NOTE            = "ADMIN_NOTE"
+	SIGN_IN               = "SIGN_IN"
+	KEYCHAIN_UPSERT       = "KEYCHAIN_UPSERT"
+	KEYCHAIN_DELETE       = "KEYCHAIN_DELETE"
+)
+
+func (t Type1) String() string {
+	types := [...]string{"CREATED", "UPDATED", "ADMIN_NOTE", "SIGN_IN", "KEYCHAIN_UPSERT", "KEYCHAIN_DELETE"}
+
+	x := string(t)
+	for _, v := range types {
+		if v == x {
+			return x
+		}
+	}
+
+	return ""
+}
+
+type AccessControl string
+
+const (
+	MASTER  AccessControl = "MASTER"
+	SYSTEM                = "SYSTEM"
+	ADMIN                 = "ADMIN"
+	MEMBER                = "MEMBER"
+	PENDING               = "PENDING"
+	BANNED                = "BANNED"
+)
+
+func (a AccessControl) String() string {
+	accesscontrol := [...]string{"MASTER", "SYSTEM", "ADMIN", "MEMBER", "PENDING", "BANNED"}
+
+	x := string(a)
+	for _, v := range accesscontrol {
+		if v == x {
+			return x
+		}
+	}
+
+	return ""
+}
+
+type Type2 string
+
+const (
+	PASSWORD Type2 = "PASSWORD"
+	KAKAO          = "KAKAO"
+)
+
+func (t Type2) String() string {
+	types := [...]string{"PASSWORD", "KAKAO"}
+
+	x := string(t)
+	for _, v := range types {
+		if v == x {
+			return x
+		}
+	}
+
+	return ""
+}
+
+type ActivityItem struct {
+	Type1     `bson:",inline"`
+	Content   string `json:"content,omitempty"`
+	TimeStamp int64  `json:"timestamp,omitempty"`
+}
+
+type KeyChainItem struct {
+	Type2      `bson:",inline"`
+	Content    string `json:"content,omitempty"`
+	Secret     string `json:"secret,omitempty"`
+	Expiration int64  `json:"timestamp,omitempty"`
 }
 
 type UserRepo struct {
@@ -77,10 +156,10 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 	update := bson.M{
 		"$set": bson.M{
 			"username":      user.Username,
-			"passphrase":    user.PassPhrase,
+			"passphrase":    user.Password,
 			"accesscontrol": user.AccessControl,
-			"updated":       user.Updated,
-			"adminnote":     user.AdminNote,
+			// "updated":       user.Updated,
+			// "adminnote":     user.AdminNote,
 		},
 	}
 
