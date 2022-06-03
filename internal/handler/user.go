@@ -14,6 +14,7 @@ import (
 
 	// "time"
 
+	"github.com/talenthandongsite/server-auth/internal/enum/accesscontrol"
 	"github.com/talenthandongsite/server-auth/internal/repo"
 )
 
@@ -119,6 +120,13 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		// LastAccess:    nowUnixMilli,
 	}
 	err = json.Unmarshal(b, &user)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = accesscontrol.Enum(user.AccessControl)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
