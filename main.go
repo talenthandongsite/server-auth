@@ -26,8 +26,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	repo := repo.InitUserRepo(client)
-	handler := handler.InitUserHandler(repo)
+	repository := repo.InitUserRepo(client)
+
+	handler := handler.InitUserHandler(repository)
 
 	mux.HandleFunc("/admin/user", handler.HandleCreateRead)
 	mux.HandleFunc("/admin/user/", handler.HandleUpdateDelete)

@@ -14,15 +14,26 @@ const DATABASE_NAME = "talent"
 const USER_COLLECTION_NAME = "user"
 
 type User struct {
-	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
-	ExternalID    string `json:"externalId,omitempty"`
-	Username      string `json:"username,omitempty"`
-	PassPhrase    string `json:"passPhrase,omitempty"`
-	AccessControl string `json:"accessControl,omitempty"`
-	Created       int64  `json:"created,omitempty"`
-	Updated       int64  `json:"updated,omitempty"`
-	LastAccess    int64  `json:"lastAccess,omitempty"`
-	AdminNote     string `json:"adminNote,omitempty"`
+	ID            string         `json:"id,omitempty" bson:"_id,omitempty"`
+	Username      string         `json:"username,omitempty" bson:",omitempty"`
+	Password      string         `json:"password,omitempty" bson:",omitempty"`
+	Email         string         `json:"email,omitempty" bson:",omitempty"`
+	AccessControl string         `json:"accessControl,omitempty" bson:",omitempty"`
+	Activity      []ActivityItem `bson:",omitempty"`
+	KeyChain      []KeyChainItem `bson:",omitempty"`
+}
+
+type ActivityItem struct {
+	Type      string `bson:",omitempty"`
+	Content   string `json:"content,omitempty" bson:",omitempty"`
+	TimeStamp int64  `json:"timestamp,omitempty" bson:",omitempty"`
+}
+
+type KeyChainItem struct {
+	Type       string `bson:",omitempty"`
+	Content    string `json:"content,omitempty" bson:",omitempty"`
+	Secret     string `json:"secret,omitempty" bson:",omitempty"`
+	Expiration int64  `json:"timestamp,omitempty" bson:",omitempty"`
 }
 
 type UserRepo struct {
@@ -74,15 +85,7 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 		return 0, err
 	}
 
-	update := bson.M{
-		"$set": bson.M{
-			"username":      user.Username,
-			"passphrase":    user.PassPhrase,
-			"accesscontrol": user.AccessControl,
-			"updated":       user.Updated,
-			"adminnote":     user.AdminNote,
-		},
-	}
+	update := bson.M{"$set": user}
 
 	updateResult, err := repo.Coll.UpdateOne(
 		ctx,
@@ -125,4 +128,8 @@ func (repo *UserRepo) Delete(ctx context.Context, deleteId string) (int, error) 
 		return 0, err
 	}
 	return int(deletedCount), nil
+}
+
+func UpsertKeychain(ctx context.Context, id string, keychain *KeyChainItem) {
+
 }

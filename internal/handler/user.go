@@ -11,8 +11,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
+	// "time"
+
+	"github.com/talenthandongsite/server-auth/internal/enum/accesscontrol"
 	"github.com/talenthandongsite/server-auth/internal/repo"
 )
 
@@ -84,7 +86,7 @@ func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := range user {
-		user[i].PassPhrase = ""
+		user[i].Password = ""
 	}
 
 	// Marshal struct to JSON
@@ -110,12 +112,12 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nowUnixMilli := time.Now().UnixMilli()
+	// nowUnixMilli := time.Now().UnixMilli()
 	user := repo.User{
 		AccessControl: "PENDING",
-		Created:       nowUnixMilli,
-		Updated:       nowUnixMilli,
-		LastAccess:    nowUnixMilli,
+		// Created:       nowUnixMilli,
+		// Updated:       nowUnixMilli,
+		// LastAccess:    nowUnixMilli,
 	}
 	err = json.Unmarshal(b, &user)
 	if err != nil {
@@ -124,10 +126,17 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = accesscontrol.Enum(user.AccessControl)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	hash := crypto.SHA256.New()
-	hash.Write([]byte(user.PassPhrase))
+	hash.Write([]byte(user.Password))
 	digest := hash.Sum(nil)
-	user.PassPhrase = hex.EncodeToString(digest)
+	user.Password = hex.EncodeToString(digest)
 
 	id, err := h.Repo.Create(ctx, user)
 	if err != nil {
@@ -153,10 +162,10 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nowUnixMilli := time.Now().UnixMilli()
+	// nowUnixMilli := time.Now().UnixMilli()
 	user := repo.User{
 		AccessControl: "PENDING",
-		Updated:       nowUnixMilli,
+		// Updated:       nowUnixMilli,
 	}
 	err = json.Unmarshal(b, &user)
 	if err != nil {
@@ -166,9 +175,9 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hash := crypto.SHA256.New()
-	hash.Write([]byte(user.PassPhrase))
+	hash.Write([]byte(user.Password))
 	digest := hash.Sum(nil)
-	user.PassPhrase = hex.EncodeToString(digest)
+	user.Password = hex.EncodeToString(digest)
 
 	count, err := h.Repo.Update(ctx, user, updateId)
 	if err != nil {
