@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/talenthandongsite/server-auth/internal/jwtservice"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +15,8 @@ import (
 
 const DATABASE_NAME = "talent"
 const USER_COLLECTION_NAME = "user"
+
+var tokenDuration time.Duration = time.Hour * 72
 
 type User struct {
 	ID            string         `json:"id,omitempty" bson:"_id,omitempty"`
@@ -49,7 +53,7 @@ type DataItem struct {
 
 type SignInResponse struct {
 	Status string   `json:"status,omitempty" bson:",omitempty"`
-	Data   DataItem `json:"data,omitempty, bson:",omitempty"`
+	Data   DataItem `json:"data,omitempty" bson:",omitempty"`
 }
 
 type JWTClaims struct {
@@ -61,10 +65,7 @@ type JWTClaims struct {
 
 type UserRepo struct {
 	Coll *mongo.Collection
-}
-
-type Gotest struct {
-	Username string `bson:"username"`
+	Jwt  *jwtservice.JwtService
 }
 
 func InitUserRepo(client *mongo.Client) *UserRepo {
@@ -160,11 +161,11 @@ func (repo *UserRepo) Delete(ctx context.Context, deleteId string) (int, error) 
 func (repo *UserRepo) ValidateUser(ctx context.Context, signin SignIn) (SignInResponse, error) {
 	log.Println("DEBUG : in repo ValidateUser")
 
-	var result bson.M
+	var user User
 	err := repo.Coll.FindOne(
 		context.TODO(),
-		bson.D{{"username", signin.Username}},
-	).Decode(&result)
+		bson.M{"username": signin.Username},
+	).Decode(&user)
 
 	if err != nil {
 		// username에 해당되는 데이터가 없을 경우 false 반환
@@ -176,50 +177,32 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, signin SignIn) (SignInRe
 		}
 	}
 
-	if result["password"] != signin.Password {
+	if user.Password != signin.Password {
 		// username에 해당되는 데이터가 있지만 password가 틀릴 경우 false 반환
-		err := errors.New("Wrong password")
+		err := errors.New("repo: wrong password")
 		log.Println("DEBUG : in repo ValidateUser : Wrong password")
 		return SignInResponse{
 			Status: "false",
 		}, err
 	}
 
-	id := result["_id"].(primitive.ObjectID).Hex()
-	username := result["username"].(string)
-	accesscontrol := result["accesscontrol"].(string)
+	token, expiration, err := repo.Jwt.ForgeToken(user.ID, user.Username, user.AccessControl, tokenDuration)
+	if err != nil {
+		err := errors.New("token forge error")
+		log.Println("DEBUG : in repo ValidateUser : token forge error")
+		return SignInResponse{
+			Status: "false",
+		}, err
+	}
 
 	// username에 해당하는 데이터가 있고 비밀번호도 맞을 경우 리턴값 반환
 	return SignInResponse{
 		Status: "true",
 		Data: DataItem{
-			Token: "bearing " + TestTokenBuild(id, username, accesscontrol),
-			Exp:   1234456,
+			Token: "Bearer " + token,
+			Exp:   expiration.UnixMilli(),
 		},
 	}, nil
-}
-
-func TestTokenBuild(id string, username string, accesscontrol string) string {
-	at := JWTClaims{
-		ID:            id,
-		Username:      username,
-		AccessControl: accesscontrol,
-		// StandardClaims: jwt.StandardClaims{
-		// 	ExpiresAt: jwt.At(time.Now().Add(time.Hour * 24)), // 만료시간 24시간
-		// },
-	}
-
-	atoken := jwt.NewWithClaims(jwt.SigningMethodHS256, &at)
-	signedAuthToken, err := atoken.SignedString([]byte("SecretCode"))
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	log.Println("-------------------------------")
-	log.Println("bearing " + signedAuthToken)
-
-	return signedAuthToken
 }
 
 func UpsertKeychain(ctx context.Context, id string, keychain *KeyChainItem) {
