@@ -74,6 +74,71 @@ func (h *UserHandler) HandleUpdateDelete(w http.ResponseWriter, r *http.Request)
 	http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 }
 
+func (h *UserHandler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.Method, r.URL.Path)
+	log.Println("DEBUG : in HandleSignIn")
+
+	w.Header().Set("content-type", "application/json")
+
+	if r.Method == http.MethodPost {
+		log.Println("DEBUG : in SignIn(HandleSignIn)")
+		h.SignIn(w, r)
+		return
+	}
+
+	err := errors.New("method not allowed")
+	log.Println(err)
+	http.Error(w, err.Error(), http.StatusMethodNotAllowed)
+}
+
+func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	log.Println("DEBUG : in SignIn")
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	signin := repo.SignIn{}
+
+	err = json.Unmarshal(b, &signin)
+	if err != nil {
+		log.Println(err)
+		log.Println("error in Unmarshalling sign in json body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	hash := crypto.SHA256.New()
+	hash.Write([]byte(signin.Password))
+	digest := hash.Sum(nil)
+	signin.Password = hex.EncodeToString(digest)
+
+	// jsonBytes, err := json.Marshal(signin)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return
+	// }
+
+	validation, err := h.Repo.ValidateUser(ctx, signin)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	testBytes, err := json.Marshal(validation)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	w.Write(testBytes)
+}
+
 func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	log.Println("DEBUG : in Read")
@@ -81,6 +146,8 @@ func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 	user, err := h.Repo.Read(ctx)
 	if err != nil {
 		log.Println(err)
+		log.Println(h.Repo.Read(ctx))
+		log.Println("here")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -122,6 +189,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, &user)
 	if err != nil {
 		log.Println(err)
+		log.Println("hello")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

@@ -32,6 +32,7 @@ func main() {
 
 	mux.HandleFunc("/admin/user", handler.HandleCreateRead)
 	mux.HandleFunc("/admin/user/", handler.HandleUpdateDelete)
+	mux.HandleFunc("/signin", handler.HandleSignIn)
 
 	app := http.FileServer(http.Dir("web"))
 	assets := http.FileServer(http.Dir("assets"))
