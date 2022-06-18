@@ -114,6 +114,8 @@ func (repo *UserRepo) Read(ctx context.Context, sort string, limit int64, offset
 	opts.SetLimit(limit)
 
 	if len(sort) > 0 {
+		// TODO : 값 에러 체킹
+		// 리팩토링 : 함수로 빼기
 		split := strings.Split(sort, "_")
 		log.Println(split[0])
 		log.Println(split[1])
