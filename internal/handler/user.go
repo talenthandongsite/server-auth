@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -34,7 +35,6 @@ func InitUserHandler(repo *repo.UserRepo) *UserHandler {
 func (h *UserHandler) HandleCreateRead(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path)
 	log.Println("DEBUG : in HandleCreateRead")
-
 	w.Header().Set("content-type", "application/json")
 
 	if r.Method == http.MethodGet {
@@ -140,10 +140,46 @@ func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	log.Println("DEBUG : in Read")
 
-	user, err := h.Repo.Read(ctx)
+	var sort = ""
+	var limit int64 = 10
+	var offset int64 = 0
+	var id = ""
+
+	query, err1 := url.ParseQuery(r.URL.RawQuery)
+	if err1 != nil {
+		panic(err1)
+	}
+	log.Println(query)
+
+	// 1. 있는지 체크
+	// 있으면 val값, true
+	// 없으면 nil, false
+	// TODO : 값 에러 체킹
+	if val, ok := query["sort"]; ok {
+		sort = val[0]
+	}
+
+	if val, ok := query["limit"]; ok {
+		limit, _ = strconv.ParseInt(val[0], 10, 64)
+	}
+
+	if val, ok := query["offset"]; ok {
+		offset, _ = strconv.ParseInt(val[0], 10, 64)
+	}
+
+	if val, ok := query["id"]; ok {
+		id = val[0]
+	}
+
+	// log.Println(sort)
+	// log.Println(limit)
+	// log.Println(offset)
+	// log.Println(id)
+
+	user, err := h.Repo.Read(ctx, sort, limit, offset, id)
+	// TODO : 파라미터 구조체로 넘기기
 	if err != nil {
 		log.Println(err)
-		log.Println(h.Repo.Read(ctx))
 		log.Println("here")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -11,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const DATABASE_NAME = "talent"
@@ -93,9 +95,41 @@ func (repo *UserRepo) Create(ctx context.Context, user User) (string, error) {
 	return objectId.Hex(), nil
 }
 
-func (repo *UserRepo) Read(ctx context.Context) ([]User, error) {
+func (repo *UserRepo) Read(ctx context.Context, sort string, limit int64, offset int64, id string) ([]User, error) {
 	var user []User
-	cursor, err := repo.Coll.Find(ctx, bson.D{})
+	filter := bson.M{}
+	opts := options.Find()
+
+	if len(id) > 0 {
+		// id가 있는 경우에 filter에 추가
+		objID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, err
+		}
+		filter = bson.M{"_id": bson.M{"$eq": objID}}
+	}
+
+	opts.SetSkip(offset)
+
+	opts.SetLimit(limit)
+
+	if len(sort) > 0 {
+		// TODO : 값 에러 체킹
+		// 리팩토링 : 함수로 빼기
+		split := strings.Split(sort, "_")
+		log.Println(split[0])
+		log.Println(split[1])
+		key1 := split[0]
+		value := 1
+		if split[1] == "asc" {
+			value = -1
+		} else {
+			value = 1
+		}
+		opts.SetSort(bson.M{key1: value})
+	}
+
+	cursor, err := repo.Coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
