@@ -126,16 +126,16 @@ Content-type: application/json
 
 # Keychain
 - keychain is nested to user
-- multiple keychains can be nested user
+- data structure of keychain object is map[string]Content
+- key of keychain can be anything but for now, we will use only 'kakao', and 'password'
 
 ## Upsert Keychain
 
 **Request**
 ```http
-POST /admin/user/{id}/keychain
+PUT /admin/user/{id}/keychain/{key}
 Content-type: application/json
 {
-    "type": "KAKAO",
     "content": "12091482",
     "secret": "",
     "expiration": 0
@@ -146,6 +146,7 @@ Content-type: application/json
     - If it doesn't exist, it creates
     - If it exists, it updates
 - Unique key is type. If keychain with KAKAO exists, it updates. If PASSWORD doesn't exists, it creates
+- Allowed {key} is "kakao", "password"
 
 **Response**
 ```http
@@ -162,7 +163,7 @@ Content-type: appication/json
 DELETE /admin/user/{id}/keychain/{keyType}
 ```
 
-- Allowed {keyType} is "PASSWORD", "KAKAO"
+- Allowed {key} is "kakao", "password"
 
 **Response**
 ```http
