@@ -32,7 +32,7 @@ func InitUserHandler(repo *repo.UserRepo) *UserHandler {
 	}
 }
 
-func (h *UserHandler) HandleCreateRead(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) HandleUser(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path)
 	log.Println("DEBUG : in HandleCreateRead")
 	w.Header().Set("content-type", "application/json")
@@ -48,17 +48,6 @@ func (h *UserHandler) HandleCreateRead(w http.ResponseWriter, r *http.Request) {
 		h.Create(w, r)
 		return
 	}
-
-	err := errors.New("method not allowed")
-	log.Println(err)
-	http.Error(w, err.Error(), http.StatusMethodNotAllowed)
-}
-
-func (h *UserHandler) HandleUpdateDelete(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL.Path)
-	log.Println("DEBUG : in HandleUpdateDelete")
-
-	w.Header().Set("content-type", "application/json")
 
 	if r.Method == http.MethodPut {
 		log.Println("DEBUG : in Update(HandleUpdateDelete)")

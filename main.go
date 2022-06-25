@@ -30,8 +30,9 @@ func main() {
 
 	handler := handler.InitUserHandler(repository)
 
-	mux.HandleFunc("/admin/user", handler.HandleCreateRead)
-	mux.HandleFunc("/admin/user/", handler.HandleUpdateDelete)
+	mux.HandleFunc("/admin/user", handler.HandleUser)
+	mux.HandleFunc("/admin/user/", handler.HandleUser)
+
 	mux.HandleFunc("/signin", handler.HandleSignIn)
 	mux.HandleFunc("/auth", handler.HandleAuth)
 
