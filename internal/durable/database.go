@@ -2,6 +2,7 @@ package durable
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,10 +10,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-const DB_URI = "mongodb+srv://talenthandongdev:nasdaq20000!@cluster0.rrf0l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+// context 안에 시크릿 값들을 넣고 getClient함수에서 빼서 사용
+type DbUsername struct{}
+type DbPassword struct{}
+type DbScheme struct{}
+type DbAddress struct{}
 
 func GetClient(ctx context.Context) (*mongo.Client, error) {
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(DB_URI))
+
+	dbUsername := fmt.Sprintf("%v", ctx.Value(DbUsername{}))
+	dbPassword := fmt.Sprintf("%v", ctx.Value(DbPassword{}))
+	dbScheme := fmt.Sprintf("%v", ctx.Value(DbScheme{}))
+	dbAddress := fmt.Sprintf("%v", ctx.Value(DbAddress{}))
+
+	dbUri := fmt.Sprintf("%s://%s:%s@%s", dbScheme, dbUsername, dbPassword, dbAddress)
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbUri))
 	if err != nil {
 		log.Println("CON ERR")
 		return nil, err

@@ -22,10 +22,11 @@ func main() {
 		log.Fatalf("Some error occured. Err: %s", err)
 	}
 
-	val := os.Getenv("DB_USERNAME")
-	fmt.Println(val)
-
 	ctx := context.Background()
+	ctx = context.WithValue(ctx, durable.DbUsername{}, os.Getenv("DB_USERNAME"))
+	ctx = context.WithValue(ctx, durable.DbPassword{}, os.Getenv("DB_PASSWORD"))
+	ctx = context.WithValue(ctx, durable.DbScheme{}, os.Getenv("DB_SCHEME"))
+	ctx = context.WithValue(ctx, durable.DbAddress{}, os.Getenv("DB_ADDRESS"))
 
 	fmt.Println("Starting Talent Server")
 
@@ -36,9 +37,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-
 	repository := repo.InitUserRepo(client)
-
 	handler := handler.InitUserHandler(repository)
 
 	mux.HandleFunc("/admin/user", handler.HandleUser)
