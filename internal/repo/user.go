@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -20,14 +21,16 @@ const USER_COLLECTION_NAME = "user"
 
 var tokenDuration time.Duration = time.Hour * 72
 
+type UserId struct{}
+type KeyType struct{}
 type User struct {
-	ID            string         `json:"id,omitempty" bson:"_id,omitempty"`
-	Username      string         `json:"username,omitempty" bson:",omitempty"`
-	Password      string         `json:"password,omitempty" bson:",omitempty"`
-	Email         string         `json:"email,omitempty" bson:",omitempty"`
-	AccessControl string         `json:"accessControl,omitempty" bson:",omitempty"`
-	Activity      []ActivityItem `bson:",omitempty"`
-	KeyChain      []KeyChainItem `bson:",omitempty"`
+	ID            string                  `json:"id,omitempty" bson:"_id,omitempty"`
+	Username      string                  `json:"username,omitempty" bson:",omitempty"`
+	Password      string                  `json:"password,omitempty" bson:",omitempty"`
+	Email         string                  `json:"email,omitempty" bson:",omitempty"`
+	AccessControl string                  `json:"accessControl,omitempty" bson:",omitempty"`
+	Activity      []ActivityItem          `bson:",omitempty"`
+	KeyChain      map[string]KeyChainItem `bson:",omitempty"`
 }
 
 type ActivityItem struct {
@@ -37,10 +40,9 @@ type ActivityItem struct {
 }
 
 type KeyChainItem struct {
-	Type       string `bson:",omitempty"`
 	Content    string `json:"content,omitempty" bson:",omitempty"`
 	Secret     string `json:"secret,omitempty" bson:",omitempty"`
-	Expiration int64  `json:"timestamp,omitempty" bson:",omitempty"`
+	Expiration int64  `json:"expiration,omitempty" bson:",omitempty"`
 }
 
 type SignIn struct {
@@ -239,6 +241,67 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, signin SignIn) (SignInRe
 	}, nil
 }
 
-func UpsertKeychain(ctx context.Context, id string, keychain *KeyChainItem) {
+func (repo *UserRepo) UpsertKeychain(ctx context.Context, keychain *KeyChainItem) (bson.M, error) {
 
+	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
+	keyType := fmt.Sprintf("%v", ctx.Value(KeyType{}))
+
+	objectId, err := primitive.ObjectIDFromHex(userId)
+
+	if err != nil {
+		return bson.M{}, err
+	}
+
+	log.Println("DEBUG : in keychain Upsert / userId = ", userId, keyType)
+
+	filter := bson.M{"_id": objectId}
+	update := bson.M{"$set": bson.M{"keychain." + keyType: keychain}}
+
+	upsert := true
+	after := options.After
+
+	opt := options.FindOneAndUpdateOptions{
+		ReturnDocument: &after,
+		Upsert:         &upsert,
+	}
+
+	result := repo.Coll.FindOneAndUpdate(ctx, filter, update, &opt)
+
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	doc := bson.M{}
+	decodeErr := result.Decode(&doc)
+
+	return doc, decodeErr
+}
+
+func (repo *UserRepo) DeleteKeychain(ctx context.Context) (bson.M, error) {
+
+	log.Println("DEBUG : in repo Delete Keychain")
+
+	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
+	keyType := fmt.Sprintf("%v", ctx.Value(KeyType{}))
+
+	objectId, err := primitive.ObjectIDFromHex(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"_id": objectId}
+	update := bson.M{"$unset": bson.M{"keychain." + keyType: ""}}
+
+	after := options.Before
+
+	opt := options.FindOneAndUpdateOptions{
+		ReturnDocument: &after,
+	}
+	result := repo.Coll.FindOneAndUpdate(ctx, filter, update, &opt)
+
+	doc := bson.M{}
+	decodeErr := result.Decode(&doc)
+
+	return doc, decodeErr
 }

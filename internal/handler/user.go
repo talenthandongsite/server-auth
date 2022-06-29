@@ -37,6 +37,14 @@ func (h *UserHandler) HandleUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("DEBUG : in HandleCreateRead")
 	w.Header().Set("content-type", "application/json")
 
+	slice := strings.Split(r.URL.Path, "/")
+
+	if len(slice) == 6 {
+		log.Println("DEBUG : in HandleKeychain")
+		h.HandleKeychain(w, r)
+		return
+	}
+
 	if r.Method == http.MethodGet {
 		log.Println("DEBUG : in Read(HandleCreateRead)")
 		h.Read(w, r)
