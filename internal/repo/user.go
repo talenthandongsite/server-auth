@@ -252,7 +252,7 @@ func (repo *UserRepo) UpsertKeychain(ctx context.Context, keychain *KeyChainItem
 		return bson.M{}, err
 	}
 
-	log.Println("DEBUG : in keychain Upsert / userId = ", userId, keyType)
+	log.Println("DEBUG : in re[p upsert Keychain")
 
 	filter := bson.M{"_id": objectId}
 	update := bson.M{"$set": bson.M{"keychain." + keyType: keychain}}
