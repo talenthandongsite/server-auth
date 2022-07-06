@@ -54,5 +54,7 @@ func main() {
 	mux.Handle("/assets", http.StripPrefix("/assets", assets))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", assets))
 
+	mux.Handle("/", http.RedirectHandler("/app", http.StatusMovedPermanently))
+
 	http.ListenAndServe(":"+PORT, mux)
 }
