@@ -17,8 +17,8 @@ import (
 	// "time"
 
 	"github.com/talenthandongsite/server-auth/internal/enum/accesscontrol"
-	"github.com/talenthandongsite/server-auth/internal/jwtservice"
 	"github.com/talenthandongsite/server-auth/internal/repo"
+	"github.com/talenthandongsite/server-auth/pkg/jwtservice"
 )
 
 type UserHandler struct {
