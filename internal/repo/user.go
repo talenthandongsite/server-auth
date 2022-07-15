@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/talenthandongsite/server-auth/pkg/jwtservice"
+	"github.com/talenthandongsite/server-auth/pkg/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,8 +16,6 @@ import (
 
 const DATABASE_NAME = "talent"
 const USER_COLLECTION_NAME = "user"
-
-var tokenDuration time.Duration = time.Hour * 72
 
 type UserId struct{}
 type KeyType struct{}
@@ -61,15 +57,14 @@ type SignInResponse struct {
 }
 
 type JWTClaims struct {
-	ID                 string `json:"id,omitempty" bson:"_id,omitempty"`
-	Username           string `json:"username,omitempty" bson:",omitempty"`
-	AccessControl      string `json:"accessControl,omitempty" bson:",omitempty"`
-	jwt.StandardClaims        // 표준 토큰 Claims
+	ID            string `json:"id,omitempty" bson:"_id,omitempty"`
+	Username      string `json:"username,omitempty" bson:",omitempty"`
+	AccessControl string `json:"accessControl,omitempty" bson:",omitempty"`
 }
 
 type UserRepo struct {
 	Coll *mongo.Collection
-	Jwt  *jwtservice.JwtService
+	Jwt  *jwt.Jwt
 }
 
 func InitUserRepo(client *mongo.Client) *UserRepo {
@@ -222,7 +217,7 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, signin SignIn) (SignInRe
 		}, err
 	}
 
-	token, expiration, err := repo.Jwt.ForgeToken(user.ID, user.Username, user.AccessControl, tokenDuration)
+	token, expiration, err := repo.Jwt.ForgeToken(user.ID, user.Username, user.AccessControl)
 	if err != nil {
 		err := errors.New("token forge error")
 		log.Println("DEBUG : in repo ValidateUser : token forge error")
