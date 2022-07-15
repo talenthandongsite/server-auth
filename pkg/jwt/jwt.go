@@ -1,14 +1,17 @@
-package jwtservice
+package jwt
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-var jwtKey = []byte("my_secret_key")
-var tokenDuration time.Duration = time.Hour * 72
+type TokenSecret struct{}
+type TokenDuration struct{}
 
 type JWTClaims struct {
 	ID                 string `json:"id,omitempty" bson:"_id,omitempty"`
@@ -17,19 +20,32 @@ type JWTClaims struct {
 	jwt.StandardClaims        // 표준 토큰 Claims
 }
 
-type JwtService struct {
-	Secret string
+type Jwt struct {
+	Secret   []byte
+	Duration time.Duration
 }
 
-func Init(secret string) *JwtService {
-	return &JwtService{
-		Secret: secret,
+func Init(ctx context.Context) (jwt *Jwt, err error) {
+	sstr := fmt.Sprintf("%v", ctx.Value(TokenSecret{}))
+	secret := []byte(sstr)
+
+	dstr := fmt.Sprintf("%v", ctx.Value(TokenDuration{}))
+	dint, err := strconv.ParseInt(dstr, 10, 64)
+	if err != nil {
+		return nil, err
 	}
+
+	duration := time.Millisecond * time.Duration(dint)
+
+	return &Jwt{
+		Secret:   secret,
+		Duration: duration,
+	}, nil
 }
 
-func (j *JwtService) ForgeToken(id string, username string, accessControl string, tokenDuration time.Duration) (string, time.Time, error) {
+func (j *Jwt) ForgeToken(id string, username string, accessControl string) (string, time.Time, error) {
 	// 토큰 유효시간 설정
-	expirationTime := time.Now().Add(tokenDuration)
+	expirationTime := time.Now().Add(j.Duration)
 
 	// JWT claims 생성 username과 유효시간 포함
 	claims := JWTClaims{
@@ -43,7 +59,7 @@ func (j *JwtService) ForgeToken(id string, username string, accessControl string
 	}
 
 	atoken := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
-	signedAuthToken, err := atoken.SignedString(jwtKey)
+	signedAuthToken, err := atoken.SignedString([]byte(j.Secret))
 
 	if err != nil {
 		log.Println(err)
@@ -53,10 +69,10 @@ func (j *JwtService) ForgeToken(id string, username string, accessControl string
 	return signedAuthToken, expirationTime, nil
 }
 
-func (j *JwtService) OpenToken(tokenStr string) (*JWTClaims, error) {
+func (j *Jwt) OpenToken(tokenStr string) (*JWTClaims, error) {
 	var claims JWTClaims
 	tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return []byte(j.Secret), nil
 	})
 
 	if err != nil {

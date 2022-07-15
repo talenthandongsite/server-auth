@@ -14,21 +14,20 @@ import (
 	"strconv"
 	"strings"
 
-	// "time"
-
-	"github.com/talenthandongsite/server-auth/internal/enum/accesscontrol"
 	"github.com/talenthandongsite/server-auth/internal/repo"
-	"github.com/talenthandongsite/server-auth/pkg/jwtservice"
+	"github.com/talenthandongsite/server-auth/pkg/enum"
+	"github.com/talenthandongsite/server-auth/pkg/jwt"
 )
 
 type UserHandler struct {
 	Repo *repo.UserRepo
-	Jwt  *jwtservice.JwtService
+	Jwt  *jwt.Jwt
 }
 
-func InitUserHandler(repo *repo.UserRepo) *UserHandler {
+func InitUserHandler(repo *repo.UserRepo, jwt *jwt.Jwt) *UserHandler {
 	return &UserHandler{
 		Repo: repo,
+		Jwt:  jwt,
 	}
 }
 
@@ -224,7 +223,8 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = accesscontrol.Enum(user.AccessControl)
+	var ac enum.AccessControl
+	err = ac.Enum(user.AccessControl)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)

@@ -16,7 +16,7 @@ type DbPassword struct{}
 type DbScheme struct{}
 type DbAddress struct{}
 
-func GetClient(ctx context.Context) (*mongo.Client, error) {
+func GetDBClient(ctx context.Context) (*mongo.Client, error) {
 
 	dbUsername := fmt.Sprintf("%v", ctx.Value(DbUsername{}))
 	dbPassword := fmt.Sprintf("%v", ctx.Value(DbPassword{}))
