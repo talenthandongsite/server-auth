@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -16,11 +15,13 @@ import (
 )
 
 const PORT string = "8080"
+const SERVER_NAME string = "talent auth server"
+const RUNNER string = "main"
 
 func main() {
 	err := godotenv.Load("env/local.env")
 	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
+		log.Fatalf("%s: %s", RUNNER, err)
 	}
 
 	ctx := context.Background()
@@ -32,7 +33,7 @@ func main() {
 	ctx = context.WithValue(ctx, jwt.TokenSecret{}, os.Getenv("TOKEN_SECRET"))
 	ctx = context.WithValue(ctx, jwt.TokenDuration{}, os.Getenv("TOKEN_DURATION"))
 
-	fmt.Println("Starting Talent Server")
+	log.Printf("%s: starting %s\n", RUNNER, SERVER_NAME)
 
 	jwtService, err := jwt.Init(ctx)
 	if err != nil {
@@ -63,5 +64,6 @@ func main() {
 	mux.Handle("/assets", http.StripPrefix("/assets", assets))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", assets))
 
+	log.Printf("%s: %s is listening on port %s", RUNNER, SERVER_NAME, PORT)
 	http.ListenAndServe(":"+PORT, mux)
 }
