@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"github.com/talenthandongsite/server-auth/internal/repo"
-	"github.com/talenthandongsite/server-auth/pkg/enum"
+	"github.com/talenthandongsite/server-auth/pkg/enum/accesscontrol"
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
 )
 
@@ -223,7 +223,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ac enum.AccessControl
+	var ac accesscontrol.AccessControl
 	err = ac.Enum(user.AccessControl)
 	if err != nil {
 		log.Println(err)
