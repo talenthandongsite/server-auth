@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"crypto"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/talenthandongsite/server-auth/internal/repo"
+	"github.com/talenthandongsite/server-auth/internal/util"
 	"github.com/talenthandongsite/server-auth/pkg/enum/accesscontrol"
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
 )
@@ -111,10 +110,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := crypto.SHA256.New()
-	hash.Write([]byte(signin.Password))
-	digest := hash.Sum(nil)
-	signin.Password = hex.EncodeToString(digest)
+	signin.Password = util.HashSHA256(signin.Password)
 
 	validation, err := h.Repo.ValidateUser(ctx, signin)
 	if err != nil {
@@ -181,10 +177,6 @@ func (h *UserHandler) Read(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i := range user {
-		user[i].Password = ""
-	}
-
 	// Marshal struct to JSON
 	jsonResp, err := json.Marshal(user)
 	if err != nil {
@@ -223,18 +215,12 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ac accesscontrol.AccessControl
-	err = ac.Enum(user.AccessControl)
+	_, err = accesscontrol.Enum(user.AccessControl)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	hash := crypto.SHA256.New()
-	hash.Write([]byte(user.Password))
-	digest := hash.Sum(nil)
-	user.Password = hex.EncodeToString(digest)
 
 	id, err := h.Repo.Create(ctx, user)
 	if err != nil {
@@ -271,11 +257,6 @@ func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	hash := crypto.SHA256.New()
-	hash.Write([]byte(user.Password))
-	digest := hash.Sum(nil)
-	user.Password = hex.EncodeToString(digest)
 
 	count, err := h.Repo.Update(ctx, user, updateId)
 	if err != nil {

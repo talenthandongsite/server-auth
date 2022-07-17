@@ -1,16 +1,19 @@
 package activitytype
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type ActivityType string
 
 const (
 	CREATED         ActivityType = "CREATED"
-	UPDATED                      = "UPDATED"
-	ADMIN_NOTE                   = "ADMIN_NOTE"
-	SIGN_IN                      = "SIGN_IN"
-	KEYCHAIN_UPSERT              = "KEYCHAIN_UPSERT"
-	KEYCHAIN_DELETE              = "KEYCHAIN_DELETE"
+	UPDATED         ActivityType = "UPDATED"
+	ADMIN_NOTE      ActivityType = "ADMIN_NOTE"
+	SIGN_IN         ActivityType = "SIGN_IN"
+	KEYCHAIN_UPSERT ActivityType = "KEYCHAIN_UPSERT"
+	KEYCHAIN_DELETE ActivityType = "KEYCHAIN_DELETE"
 )
 
 var mapat map[string]ActivityType = map[string]ActivityType{
@@ -24,7 +27,7 @@ var mapat map[string]ActivityType = map[string]ActivityType{
 var sliceat = [...]string{"CREATED", "UPDATED", "ADMIN_NOTE", "SIGN_IN", "KEYCHAIN_UPSERT", "KEYCHAIN_DELETE"}
 
 func (at *ActivityType) Enum(str string) error {
-	v, ok := mapat[str]
+	v, ok := mapat[strings.ToUpper(str)]
 	if !ok {
 		err := errors.New("accesscontrol: string doesn't match enum")
 		return err

@@ -1,6 +1,9 @@
 package accesscontrol
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type AccessControl string
 
@@ -21,24 +24,16 @@ var mapac map[string]AccessControl = map[string]AccessControl{
 	"PENDING": PENDING,
 	"BANNED":  BANNED,
 }
-var sliceac = [...]string{"MASTER", "SYSTEM", "ADMIN", "MEMBER", "PENDING", "BANNED"}
 
-func (ac *AccessControl) Enum(str string) error {
-	v, ok := mapac[str]
+func Enum(str string) (AccessControl, error) {
+	v, ok := mapac[strings.ToUpper(str)]
 	if !ok {
 		err := errors.New("accesscontrol: string doesn't match enum")
-		return err
+		return "", err
 	}
-	ac = &v
-	return nil
+	return v, nil
 }
 
 func (ac *AccessControl) String() string {
-	x := string(*ac)
-	for _, v := range sliceac {
-		if v == x {
-			return x
-		}
-	}
-	return ""
+	return string(*ac)
 }

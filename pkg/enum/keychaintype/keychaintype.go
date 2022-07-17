@@ -1,12 +1,15 @@
 package keychaintype
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type KeyChainType string
 
 const (
 	PASSWORD KeyChainType = "PASSWORD"
-	KAKAO                 = "KAKAO"
+	KAKAO    KeyChainType = "KAKAO"
 )
 
 var mapkct map[string]KeyChainType = map[string]KeyChainType{
@@ -15,23 +18,15 @@ var mapkct map[string]KeyChainType = map[string]KeyChainType{
 }
 var slicekct = [...]string{"PASSWORD", "KAKAO"}
 
-func (kct *KeyChainType) Enum(str string) error {
-	v, ok := mapkct[str]
+func Enum(str string) (kct KeyChainType, err error) {
+	v, ok := mapkct[strings.ToUpper(str)]
 	if !ok {
 		err := errors.New("accesscontrol: string doesn't match enum")
-		return err
+		return "", err
 	}
-	kct = &v
-	return nil
+	return v, nil
 }
 
 func (kct *KeyChainType) String() string {
-	x := string(*kct)
-	for _, v := range slicekct {
-		if v == x {
-			return x
-		}
-	}
-
-	return ""
+	return string(*kct)
 }
