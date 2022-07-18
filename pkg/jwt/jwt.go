@@ -2,16 +2,13 @@ package jwt
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
-
-type TokenSecret struct{}
-type TokenDuration struct{}
 
 type JWTClaims struct {
 	ID                 string `json:"id,omitempty" bson:"_id,omitempty"`
@@ -26,10 +23,10 @@ type Jwt struct {
 }
 
 func Init(ctx context.Context) (jwt *Jwt, err error) {
-	sstr := fmt.Sprintf("%v", ctx.Value(TokenSecret{}))
+	sstr := variable.GetEnv(ctx, variable.TOKEN_SECRET)
 	secret := []byte(sstr)
 
-	dstr := fmt.Sprintf("%v", ctx.Value(TokenDuration{}))
+	dstr := variable.GetEnv(ctx, variable.TOKEN_DURATION)
 	dint, err := strconv.ParseInt(dstr, 10, 64)
 	if err != nil {
 		return nil, err
