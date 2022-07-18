@@ -17,6 +17,7 @@ const (
 	DB_PASSWORD    Env = "DB_PASSWORD"
 	DB_SCHEME      Env = "DB_SCHEME"
 	DB_ADDRESS     Env = "DB_ADDRESS"
+	DB_NAME        Env = "DB_NAME"
 	TOKEN_SECRET   Env = "TOKEN_SECRET"
 	TOKEN_DURATION Env = "TOKEN_DURATION"
 )
@@ -35,6 +36,7 @@ func Init() (ctx context.Context, err error) {
 	ctx = context.WithValue(ctx, DB_PASSWORD, os.Getenv(string(DB_PASSWORD)))
 	ctx = context.WithValue(ctx, DB_SCHEME, os.Getenv(string(DB_SCHEME)))
 	ctx = context.WithValue(ctx, DB_ADDRESS, os.Getenv(string(DB_ADDRESS)))
+	ctx = context.WithValue(ctx, DB_NAME, os.Getenv(string(DB_NAME)))
 	ctx = context.WithValue(ctx, TOKEN_SECRET, os.Getenv(string(TOKEN_SECRET)))
 	ctx = context.WithValue(ctx, TOKEN_DURATION, os.Getenv(string(TOKEN_DURATION)))
 

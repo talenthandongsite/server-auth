@@ -31,7 +31,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	repository := repo.InitUserRepo(dbclient)
+	repository := repo.InitUserRepo(serverStartUpCtx, dbclient)
 	handler := handler.Init(serverStartUpCtx, repository, jwtService)
 
 	err = handler.StartServer()
