@@ -7,6 +7,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/talenthandongsite/server-auth/internal/util"
+	"github.com/talenthandongsite/server-auth/pkg/enum/keychaintype"
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +24,6 @@ type KeyType struct{}
 type User struct {
 	ID            string                  `json:"id,omitempty" bson:"_id,omitempty"`
 	Username      string                  `json:"username,omitempty" bson:",omitempty"`
-	Password      string                  `json:"password,omitempty" bson:",omitempty"`
 	Email         string                  `json:"email,omitempty" bson:",omitempty"`
 	AccessControl string                  `json:"accessControl,omitempty" bson:",omitempty"`
 	Activity      []ActivityItem          `bson:",omitempty"`
@@ -208,15 +209,6 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, signin SignIn) (SignInRe
 		}
 	}
 
-	if user.Password != signin.Password {
-		// username에 해당되는 데이터가 있지만 password가 틀릴 경우 false 반환
-		err := errors.New("repo: wrong password")
-		log.Println("DEBUG : in repo ValidateUser : Wrong password")
-		return SignInResponse{
-			Status: "false",
-		}, err
-	}
-
 	token, expiration, err := repo.Jwt.ForgeToken(user.ID, user.Username, user.AccessControl)
 	if err != nil {
 		err := errors.New("token forge error")
@@ -241,13 +233,22 @@ func (repo *UserRepo) UpsertKeychain(ctx context.Context, keychain *KeyChainItem
 	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
 	keyType := fmt.Sprintf("%v", ctx.Value(KeyType{}))
 
-	objectId, err := primitive.ObjectIDFromHex(userId)
+	kct, err := keychaintype.Enum(keyType)
+	if err != nil {
+		return bson.M{}, err
+	}
 
+	objectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		return bson.M{}, err
 	}
 
 	log.Println("DEBUG : in repo upsert Keychain")
+
+	if kct == keychaintype.PASSWORD {
+		keychain.Content = util.HashSHA256(keychain.Content)
+		print(keychain.Content)
+	}
 
 	filter := bson.M{"_id": objectId}
 	update := bson.M{"$set": bson.M{"keychain." + keyType: keychain}}
@@ -278,6 +279,11 @@ func (repo *UserRepo) DeleteKeychain(ctx context.Context) (bson.M, error) {
 
 	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
 	keyType := fmt.Sprintf("%v", ctx.Value(KeyType{}))
+
+	_, err := keychaintype.Enum(keyType)
+	if err != nil {
+		return nil, err
+	}
 
 	objectId, err := primitive.ObjectIDFromHex(userId)
 

@@ -24,7 +24,7 @@ func (h *UserHandler) HandleKeychain(w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, repo.UserId{}, userId) //http 요청이 끝날때까지 값을 가지고있음
 	ctx = context.WithValue(ctx, repo.KeyType{}, keyType)
 
-	if r.Method == http.MethodPatch {
+	if r.Method == http.MethodPut {
 		log.Println("DEBUG : Upsert Keychain")
 		h.KeychainUpsert(ctx, w, r)
 		return
@@ -65,10 +65,20 @@ func (h *UserHandler) KeychainUpsert(ctx context.Context, w http.ResponseWriter,
 	}
 
 	doc, err := h.Repo.UpsertKeychain(ctx, &keychain)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	jsonString, err := json.Marshal(doc["keychain"])
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Write([]byte(jsonString))
-
 }
 
 func (h *UserHandler) KeychainDelete(ctx context.Context, w http.ResponseWriter, r *http.Request) {
