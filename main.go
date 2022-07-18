@@ -1,69 +1,41 @@
 package main
 
 import (
-	"context"
 	"log"
-	"net/http"
-	"os"
 
 	"github.com/talenthandongsite/server-auth/internal/durable"
 	"github.com/talenthandongsite/server-auth/internal/handler"
 	"github.com/talenthandongsite/server-auth/internal/repo"
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
-
-	"github.com/joho/godotenv"
+	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
 
-const PORT string = "8080"
-const SERVER_NAME string = "talent auth server"
 const RUNNER string = "main"
 
 func main() {
-	err := godotenv.Load("env/local.env")
+
+	serverStartUpCtx, err := variable.Init()
 	if err != nil {
-		log.Fatalf("%s: %s", RUNNER, err)
+		log.Fatalln(err)
 	}
 
-	ctx := context.Background()
+	serverName := variable.GetEnv(serverStartUpCtx, variable.SERVER_NAME)
+	log.Printf("%s: starting %s\n", RUNNER, serverName)
 
-	ctx = context.WithValue(ctx, durable.DbUsername{}, os.Getenv("DB_USERNAME"))
-	ctx = context.WithValue(ctx, durable.DbPassword{}, os.Getenv("DB_PASSWORD"))
-	ctx = context.WithValue(ctx, durable.DbScheme{}, os.Getenv("DB_SCHEME"))
-	ctx = context.WithValue(ctx, durable.DbAddress{}, os.Getenv("DB_ADDRESS"))
-	ctx = context.WithValue(ctx, jwt.TokenSecret{}, os.Getenv("TOKEN_SECRET"))
-	ctx = context.WithValue(ctx, jwt.TokenDuration{}, os.Getenv("TOKEN_DURATION"))
-
-	log.Printf("%s: starting %s\n", RUNNER, SERVER_NAME)
-
-	jwtService, err := jwt.Init(ctx)
+	jwtService, err := jwt.Init(serverStartUpCtx)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
 	}
-	dbclient, err := durable.GetDBClient(ctx)
+	dbclient, err := durable.InitDBClient(serverStartUpCtx)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	mux := http.NewServeMux()
 	repository := repo.InitUserRepo(dbclient)
-	handler := handler.InitUserHandler(repository, jwtService)
+	handler := handler.Init(serverStartUpCtx, repository, jwtService)
 
-	mux.HandleFunc("/admin/user", handler.HandleUser)
-	mux.HandleFunc("/admin/user/", handler.HandleUser)
-
-	mux.HandleFunc("/signin", handler.HandleSignIn)
-	mux.HandleFunc("/auth", handler.HandleAuth)
-
-	app := http.FileServer(http.Dir("web"))
-	assets := http.FileServer(http.Dir("assets"))
-
-	mux.Handle("/app", http.StripPrefix("/app", app))
-	mux.Handle("/app/", http.StripPrefix("/app/", app))
-	mux.Handle("/assets", http.StripPrefix("/assets", assets))
-	mux.Handle("/assets/", http.StripPrefix("/assets/", assets))
-
-	log.Printf("%s: %s is listening on port %s", RUNNER, SERVER_NAME, PORT)
-	http.ListenAndServe(":"+PORT, mux)
+	err = handler.StartServer()
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

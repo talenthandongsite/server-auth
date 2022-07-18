@@ -21,6 +21,7 @@ const USER_COLLECTION_NAME = "user"
 
 type UserId struct{}
 type KeyType struct{}
+
 type User struct {
 	ID            string                  `json:"id,omitempty" bson:"_id,omitempty"`
 	Username      string                  `json:"username,omitempty" bson:",omitempty"`
@@ -137,10 +138,11 @@ func (repo *UserRepo) Read(ctx context.Context, sort string, limit int64, offset
 	return user, nil
 }
 
-func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (int, error) {
-	log.Println("DEBUG : in repo Update / updateId = ", updateId)
+func (repo *UserRepo) Update(ctx context.Context, user User) (int, error) {
 
-	objectId, err := primitive.ObjectIDFromHex(updateId)
+	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
+
+	objectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		return 0, err
 	}
@@ -167,10 +169,10 @@ func (repo *UserRepo) Update(ctx context.Context, user User, updateId string) (i
 	return int(updateCount), nil
 }
 
-func (repo *UserRepo) Delete(ctx context.Context, deleteId string) (int, error) {
-	log.Println("DEBUG : in repo Delete / deleteId = ", deleteId)
+func (repo *UserRepo) Delete(ctx context.Context) (int, error) {
+	userId := fmt.Sprintf("%v", ctx.Value(UserId{}))
 
-	objectId, err := primitive.ObjectIDFromHex(deleteId)
+	objectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		return 0, err
 	}
