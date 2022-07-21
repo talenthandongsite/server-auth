@@ -30,7 +30,8 @@ class Authentication {
     }
 
     static signIn(username, password) {
-        HttpRequest.post(AUTH_SERVER_URL, {username, password}, { 'Content-Type': 'application/json' }).then(result => {
+        const body = JSON.stringify({username, password});
+        HttpRequest.post(AUTH_SERVER_URL, body, { 'Content-Type': 'application/json' }).then(result => {
             const { status, data } = result;
             if (!status) {
                 alert("유저명, 혹은 비밀번호가 틀렸습니다.")

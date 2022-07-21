@@ -10,7 +10,7 @@ class HttpRequest {
         return await fetch(url, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(body)
+            body: body
         }).then(result => result.json());
     }
 }
