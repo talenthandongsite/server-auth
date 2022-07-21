@@ -1,60 +1,41 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"net/http"
-	"os"
 
 	"github.com/talenthandongsite/server-auth/internal/durable"
 	"github.com/talenthandongsite/server-auth/internal/handler"
 	"github.com/talenthandongsite/server-auth/internal/repo"
-
-	"github.com/joho/godotenv"
+	"github.com/talenthandongsite/server-auth/pkg/jwt"
+	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
 
-const PORT string = "8080"
+const RUNNER string = "main"
 
 func main() {
-	err := godotenv.Load("env/local.env")
+
+	serverStartUpCtx, err := variable.Init()
 	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
+		log.Fatalln(err)
 	}
 
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, durable.DbUsername{}, os.Getenv("DB_USERNAME"))
-	ctx = context.WithValue(ctx, durable.DbPassword{}, os.Getenv("DB_PASSWORD"))
-	ctx = context.WithValue(ctx, durable.DbScheme{}, os.Getenv("DB_SCHEME"))
-	ctx = context.WithValue(ctx, durable.DbAddress{}, os.Getenv("DB_ADDRESS"))
+	serverName := variable.GetEnv(serverStartUpCtx, variable.SERVER_NAME)
+	log.Printf("%s: starting %s\n", RUNNER, serverName)
 
-	fmt.Println("Starting Talent Server")
-
-	client, err := durable.GetClient(ctx)
+	jwtService, err := jwt.Init(serverStartUpCtx)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Fatalln(err)
+	}
+	dbclient, err := durable.InitDBClient(serverStartUpCtx)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	mux := http.NewServeMux()
-	repository := repo.InitUserRepo(client)
-	handler := handler.InitUserHandler(repository)
+	repository := repo.InitUserRepo(serverStartUpCtx, dbclient)
+	handler := handler.Init(serverStartUpCtx, repository, jwtService)
 
-	mux.HandleFunc("/admin/user", handler.HandleUser)
-	mux.HandleFunc("/admin/user/", handler.HandleUser)
-
-	mux.HandleFunc("/signin", handler.HandleSignIn)
-	mux.HandleFunc("/auth", handler.HandleAuth)
-
-	app := http.FileServer(http.Dir("web"))
-	assets := http.FileServer(http.Dir("assets"))
-
-	mux.Handle("/app", http.StripPrefix("/app", app))
-	mux.Handle("/app/", http.StripPrefix("/app/", app))
-	mux.Handle("/assets", http.StripPrefix("/assets", assets))
-	mux.Handle("/assets/", http.StripPrefix("/assets/", assets))
-
-	mux.Handle("/", http.RedirectHandler("/app", http.StatusMovedPermanently))
-
-	http.ListenAndServe(":"+PORT, mux)
+	err = handler.StartServer()
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

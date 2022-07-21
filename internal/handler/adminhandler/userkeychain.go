@@ -1,4 +1,4 @@
-package handler
+package adminhandler
 
 import (
 	"context"
@@ -7,24 +7,14 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/talenthandongsite/server-auth/internal/repo"
 )
 
 // TODO: implement handler about user/keychain
+func (h *AdminHandler) HandleKeychain(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 
-func (h *UserHandler) HandleKeychain(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	slice := strings.Split(r.URL.Path, "/")
-
-	userId := slice[3]
-	keyType := slice[5]
-
-	ctx = context.WithValue(ctx, repo.UserId{}, userId) //http 요청이 끝날때까지 값을 가지고있음
-	ctx = context.WithValue(ctx, repo.KeyType{}, keyType)
-
-	if r.Method == http.MethodPatch {
+	if r.Method == http.MethodPut {
 		log.Println("DEBUG : Upsert Keychain")
 		h.KeychainUpsert(ctx, w, r)
 		return
@@ -42,7 +32,7 @@ func (h *UserHandler) HandleKeychain(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *UserHandler) KeychainUpsert(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (h *AdminHandler) KeychainUpsert(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path)
 	log.Println("DEBUG : in Handle KeyChainUpsert")
 
@@ -65,15 +55,23 @@ func (h *UserHandler) KeychainUpsert(ctx context.Context, w http.ResponseWriter,
 	}
 
 	doc, err := h.Repo.UpsertKeychain(ctx, &keychain)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	jsonString, err := json.Marshal(doc["keychain"])
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Write([]byte(jsonString))
-
 }
 
-func (h *UserHandler) KeychainDelete(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL.Path)
-	log.Println("DEBUG : in Handle KeyChainDelete")
+func (h *AdminHandler) KeychainDelete(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-type", "application/json")
 
