@@ -2,8 +2,10 @@ package jwt
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -63,12 +65,20 @@ func (j *Jwt) ForgeToken(id string, username string, accessControl string) (stri
 		return "", expirationTime, err
 	}
 
-	return signedAuthToken, expirationTime, nil
+	return "Bearer " + signedAuthToken, expirationTime, nil
 }
 
 func (j *Jwt) OpenToken(tokenStr string) (*JWTClaims, error) {
+
+	tokenFrag := strings.Split(tokenStr, " ")
+	if len(tokenFrag) != 2 {
+		err := errors.New("token is corrupted")
+		return nil, err
+	}
+	token := tokenFrag[1]
+
 	var claims JWTClaims
-	tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(j.Secret), nil
 	})
 

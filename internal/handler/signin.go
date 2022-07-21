@@ -76,7 +76,7 @@ func (h *Handler) PasswordSignIn(ctx context.Context, w http.ResponseWriter, r *
 	}
 
 	data := &SignInResponse{
-		Token: "Bearer " + token,
+		Token: token,
 		Exp:   expiration.UnixMilli(),
 	}
 
