@@ -20,6 +20,7 @@ const (
 	DB_NAME        Env = "DB_NAME"
 	TOKEN_SECRET   Env = "TOKEN_SECRET"
 	TOKEN_DURATION Env = "TOKEN_DURATION"
+	CMC_API_KEY    Env = "CMC_API_KEY"
 )
 
 func Init() (ctx context.Context, err error) {
@@ -39,6 +40,7 @@ func Init() (ctx context.Context, err error) {
 	ctx = context.WithValue(ctx, DB_NAME, os.Getenv(string(DB_NAME)))
 	ctx = context.WithValue(ctx, TOKEN_SECRET, os.Getenv(string(TOKEN_SECRET)))
 	ctx = context.WithValue(ctx, TOKEN_DURATION, os.Getenv(string(TOKEN_DURATION)))
+	ctx = context.WithValue(ctx, CMC_API_KEY, os.Getenv(string(CMC_API_KEY)))
 
 	return ctx, nil
 }
