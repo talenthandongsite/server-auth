@@ -2,9 +2,12 @@ const INPUT_MAX = 200;
 const PASSWORD_MIN = 4;
 const KEYBOARD_EVENT_OFFSET_TIME = 50;
 
+Router.cacheRedirectTo()
+
 const accountInput = document.getElementById('accountInput');
 const passwordInput = document.getElementById('passwordInput');
 const submitButton = document.getElementById('submitButton');
+const kakaoButton = document.getElementById('kakaoButton');
 
 const accountForm = new Form(accountInput, [
     FormValidator.nonEmptyString(),
@@ -19,6 +22,7 @@ const passwordForm = new Form(passwordInput, [
 accountInput.addEventListener('keydown', loginFormKeydown);
 passwordInput.addEventListener('keydown', loginFormKeydown);
 submitButton.addEventListener('click', signIn);
+kakaoButton.addEventListener('click', Authentication.kakaoLogin);
 
 function loginFormKeydown(event) {
     setTimeout(() => {

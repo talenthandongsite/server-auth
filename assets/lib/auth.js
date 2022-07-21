@@ -1,5 +1,6 @@
-const AUTH_STORAGE_KEY = 'auth';
-const TOKEN_EXPIRE_DURATION = 1000 * 60 * 60;
+const AUTH_TOKEN = 'AUTH_TOKEN'
+const AUTH_EXP = 'AUTH_EXP'
+const AUTH_SERVER_URL = "/signin";
 
 class Authentication {
 
@@ -14,7 +15,7 @@ class Authentication {
             return false;
         }
 
-        if ((new Date()).getTime() > info.expiration) {
+        if ((new Date()).getTime() > info.exp) {
             return false;
         }
 
@@ -22,29 +23,33 @@ class Authentication {
     }
 
     static getInfo() {
-        const info = localStorage.getItem(AUTH_STORAGE_KEY);
+        const token = localStorage.getItem(AUTH_TOKEN);
+        const exp = localStorage.getItem(AUTH_EXP);
 
-        if (info) {
-            return JSON.parse(info);
-        }
-
-        return;
+        return { token, exp }
     }
 
-    static signIn(email, password) {
-        // TODO: add login logic
+    static signIn(username, password) {
+        HttpRequest.post(AUTH_SERVER_URL, {username, password}, { 'Content-Type': 'application/json' }).then(result => {
+            const { status, data } = result;
+            if (!status) {
+                alert("유저명, 혹은 비밀번호가 틀렸습니다.")
+                return;
+            }
+            const { token, exp } = data;
+            localStorage.setItem(AUTH_TOKEN, token);
+            localStorage.setItem(AUTH_EXP, exp);
 
-        const expiration = (new Date()).getTime() + TOKEN_EXPIRE_DURATION;
-        // TODO: replace with actual value
-        const info = {
-            token: "test token",
-            email: email,
-            expiration: expiration
-        };
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(info));
+            Router.redirect();
+        });
     }
 
     static signOut() {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem(AUTH_TOKEN);
+        localStorage.removeItem(AUTH_EXP);
+    }
+
+    static kakaoLogin() {
+
     }
 }
