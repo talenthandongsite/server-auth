@@ -10,6 +10,7 @@ import (
 	"github.com/talenthandongsite/server-auth/pkg/enum/keychaintype"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -43,25 +44,68 @@ func (repo *UserRepo) UpsertKeychain(ctx context.Context, keychain *KeyChainItem
 		print(keychain.Content)
 	}
 
-	filter := bson.M{"_id": objectId}
-	update := bson.M{"$set": bson.M{"keychain." + keyType: keychain}}
-
-	upsert := true
-	after := options.After
-
-	opt := options.FindOneAndUpdateOptions{
-		ReturnDocument: &after,
-		Upsert:         &upsert,
+	// to start transaction, start session
+	session, err := repo.Client.StartSession()
+	if err != nil {
+		return bson.M{}, err
 	}
 
-	result := repo.Coll.FindOneAndUpdate(ctx, filter, update, &opt)
-
-	if result.Err() != nil {
-		return nil, result.Err()
+	err = session.StartTransaction()
+	if err != nil {
+		return bson.M{}, err
 	}
 
-	doc := bson.M{}
-	decodeErr := result.Decode(&doc)
+	var doc bson.M
+	var decodeErr error
+
+	err = mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
+
+		searchResult := bson.M{}
+		err := repo.Coll.FindOne(ctx, bson.M{"_id": objectId}).Decode(&searchResult)
+		if err != nil {
+			sc.AbortTransaction(sc)
+			return err
+		}
+
+		if len(searchResult) == 0 {
+			sc.AbortTransaction(sc)
+			err := errors.New("no such document")
+			return err
+		}
+
+		filter := bson.M{"_id": objectId}
+		update := bson.M{"$set": bson.M{"keychain." + keyType: keychain}}
+
+		upsert := true
+		after := options.After
+
+		opt := options.FindOneAndUpdateOptions{
+			ReturnDocument: &after,
+			Upsert:         &upsert,
+		}
+
+		result := repo.Coll.FindOneAndUpdate(ctx, filter, update, &opt)
+
+		if result.Err() != nil {
+			sc.AbortTransaction(sc)
+			return result.Err()
+		}
+
+		doc = bson.M{}
+		decodeErr = result.Decode(&doc)
+
+		err = sc.CommitTransaction(sc)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return bson.M{}, err
+	}
+
+	session.EndSession(ctx)
 
 	return doc, decodeErr
 }

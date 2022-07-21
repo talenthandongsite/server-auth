@@ -34,8 +34,9 @@ type ActivityItem struct {
 }
 
 type UserRepo struct {
-	Coll *mongo.Collection
-	ctx  context.Context
+	Client mongo.Client
+	Coll   *mongo.Collection
+	ctx    context.Context
 }
 
 func InitUserRepo(ctx context.Context, client *mongo.Client) *UserRepo {
@@ -44,8 +45,9 @@ func InitUserRepo(ctx context.Context, client *mongo.Client) *UserRepo {
 	userCollection := database.Collection(USER_COLLECTION_NAME)
 
 	return &UserRepo{
-		Coll: userCollection,
-		ctx:  ctx,
+		Client: *client,
+		Coll:   userCollection,
+		ctx:    ctx,
 	}
 }
 
