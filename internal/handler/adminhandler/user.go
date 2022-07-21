@@ -119,11 +119,10 @@ func (h *AdminHandler) Create(ctx context.Context, w http.ResponseWriter, r *htt
 	}
 
 	// nowUnixMilli := time.Now().UnixMilli()
+	keychain := make(map[string]repo.KeyChainItem)
 	user := repo.User{
 		AccessControl: "PENDING",
-		// Created:       nowUnixMilli,
-		// Updated:       nowUnixMilli,
-		// LastAccess:    nowUnixMilli,
+		KeyChain:      keychain,
 	}
 	err = json.Unmarshal(b, &user)
 	if err != nil {

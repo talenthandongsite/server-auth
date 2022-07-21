@@ -45,8 +45,10 @@ func (h *AdminHandler) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := slice[3]
-	ctx = context.WithValue(ctx, repo.UserId{}, userId) //http 요청이 끝날때까지 값을 가지고있음
+	if len(slice) > 3 {
+		userId := slice[3]
+		ctx = context.WithValue(ctx, repo.UserId{}, userId) //http 요청이 끝날때까지 값을 가지고있음
+	}
 
 	if slice[2] != "user" {
 		err := errors.New(RUNNER + ": not found")

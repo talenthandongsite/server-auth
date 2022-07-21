@@ -8,9 +8,19 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/talenthandongsite/server-auth/internal/repo"
 	"github.com/talenthandongsite/server-auth/internal/util"
+	"github.com/talenthandongsite/server-auth/pkg/response"
 )
+
+type SignInRequest struct {
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
+type SignInResponse struct {
+	Token string `json:"token,omitempty"`
+	Exp   int64  `json:"exp,omitempty"`
+}
 
 func (h *Handler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path)
@@ -20,7 +30,7 @@ func (h *Handler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		log.Println("DEBUG : in SignIn(HandleSignIn)")
-		h.SignIn(ctx, w, r)
+		h.PasswordSignIn(ctx, w, r)
 		return
 	}
 
@@ -29,7 +39,7 @@ func (h *Handler) HandleSignIn(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, err.Error(), http.StatusMethodNotAllowed)
 }
 
-func (h *Handler) SignIn(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PasswordSignIn(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	log.Println("DEBUG : in SignIn")
 
 	b, err := io.ReadAll(r.Body)
@@ -39,30 +49,42 @@ func (h *Handler) SignIn(ctx context.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	signin := repo.SignIn{}
+	var signin *SignInRequest
 
 	err = json.Unmarshal(b, &signin)
 	if err != nil {
 		log.Println(err)
-		log.Println("error in Unmarshalling sign in json body")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.JSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	signin.Password = util.HashSHA256(signin.Password)
 
-	validation, err := h.Repo.ValidateUser(ctx, signin)
+	user, err := h.Repo.ValidatePassword(ctx, signin.Username, signin.Password)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response.JSONError(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	testBytes, err := json.Marshal(validation)
+	token, expiration, err := h.Jwt.ForgeToken(user.ID, user.Username, user.AccessControl)
 	if err != nil {
-		log.Println(err)
+		log.Println("DEBUG : in repo ValidateUser : token forge error")
+		err := errors.New("token forge error")
+		response.JSONError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(testBytes)
+	data := &SignInResponse{
+		Token: "Bearer " + token,
+		Exp:   expiration.UnixMilli(),
+	}
+
+	databytes, err := json.Marshal(data)
+	if err != nil {
+		response.JSONError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	response.JSONResponse(w, databytes, http.StatusOK)
 }
