@@ -78,7 +78,7 @@ func (j *Jwt) OpenToken(tokenStr string) (*JWTClaims, error) {
 	token := tokenFrag[1]
 
 	var claims JWTClaims
-	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(j.Secret), nil
 	})
 
@@ -89,6 +89,10 @@ func (j *Jwt) OpenToken(tokenStr string) (*JWTClaims, error) {
 		return nil, err
 	}
 	if !tkn.Valid {
+		return nil, err
+	}
+	if time.Now().After(time.UnixMilli(claims.ExpiresAt)) {
+		err := errors.New("token expired")
 		return nil, err
 	}
 
