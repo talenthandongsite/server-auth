@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/talenthandongsite/server-auth/pkg/variable"
+	"github.com/talenthandongsite/server-auth/internal/variable"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

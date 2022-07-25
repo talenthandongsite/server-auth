@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/talenthandongsite/server-auth/pkg/variable"
+	"github.com/talenthandongsite/server-auth/internal/variable"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
