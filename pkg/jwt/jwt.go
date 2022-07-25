@@ -1,15 +1,12 @@
 package jwt
 
 import (
-	"context"
 	"errors"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
 
 type JWTClaims struct {
@@ -24,21 +21,15 @@ type Jwt struct {
 	Duration time.Duration
 }
 
-func Init(ctx context.Context) (jwt *Jwt, err error) {
-	sstr := variable.GetEnv(ctx, variable.TOKEN_SECRET)
-	secret := []byte(sstr)
+type JwtConfig struct {
+	Secret   []byte
+	Duration time.Duration
+}
 
-	dstr := variable.GetEnv(ctx, variable.TOKEN_DURATION)
-	dint, err := strconv.ParseInt(dstr, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	duration := time.Millisecond * time.Duration(dint)
-
+func Init(config JwtConfig) (jwt *Jwt, err error) {
 	return &Jwt{
-		Secret:   secret,
-		Duration: duration,
+		Secret:   config.Secret,
+		Duration: config.Duration,
 	}, nil
 }
 

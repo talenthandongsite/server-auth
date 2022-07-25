@@ -7,8 +7,8 @@ import (
 
 	"github.com/talenthandongsite/server-auth/internal/handler/adminhandler"
 	"github.com/talenthandongsite/server-auth/internal/repo"
+	"github.com/talenthandongsite/server-auth/internal/variable"
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
-	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
 
 type Handler struct {

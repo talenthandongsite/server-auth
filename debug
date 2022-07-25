@@ -1,0 +1,2 @@
+#!/bin/bash
+export $(cat env/local.env | xargs) && go run .

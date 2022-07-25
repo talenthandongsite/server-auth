@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/NanumBarunGothic/nanumbarungothicsubset.css">
+    <link rel="stylesheet" href="/assets/css/common.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="vh-100 vw-100 flex justify-center align-center">
+        <div>
+            <div class="card" style="width: 24em; height: 36em; padding-top: 3em;">
+                <div class="card-body" style="padding: 2em;">
+                    <h4 class="card-title mb-4 noselect">HGT</h4>
+                    <h6 class="card-subtitle mb-4 text-muted noselect">로그인하기</h6>
+                    <div class="form-group mb-2">
+                        <label for="exampleInputEmail1" class="form-label noselect">계정</label>
+                        <input type="email" class="form-control" id="accountInput" placeholder="Account">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="exampleInputPassword1" class="form-label noselect">비밀번호</label>
+                        <input type="password" class="form-control" id="passwordInput" placeholder="Password">
+                    </div>
+                    <button id="submitButton" type="button" class="btn btn-outline-primary w-100" disabled>로그인</button>
+                    <hr>
+                    <h6 class="card-subtitle mb-2 text-muted noselect">소셜 계정</h6>
+                    <button type="button" id="kakaoButton" class="btn btn-outline-light flex w-100 justify-center">
+                        <img class="object-contain w-4 h-100" src="/assets/img/kakaoci-removebg.png">
+                    </button>
+                </div>
+            </div>
+            <small class="text-right text-muted w-100 block noselect">HGT서비스는 공개적으로 회원가입을 제공하지 않습니다</small>
+        </div>
+    </div>
+    <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+    <script src="/assets/lib/http-request.js"></script>
+    <script src="/assets/lib/kakao-service.js"></script>
+    <script src="/assets/lib/auth.js"></script>
+    <script src="/assets/lib/form-validation.js"></script>
+    <script src="/assets/lib/router.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

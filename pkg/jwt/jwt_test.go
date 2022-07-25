@@ -1,19 +1,17 @@
 package jwt
 
 import (
-	"context"
 	"testing"
 	"time"
-
-	"github.com/talenthandongsite/server-auth/pkg/variable"
 )
 
 func TestForgeAndOpenToken(t *testing.T) {
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, variable.TOKEN_SECRET, "1234")
-	ctx = context.WithValue(ctx, variable.TOKEN_DURATION, "100000000")
 
-	jwt, err := Init(ctx)
+	secret := []byte("1234")
+	duration := time.Millisecond * 100000000
+	config := JwtConfig{secret, duration}
+
+	jwt, err := Init(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,11 +41,11 @@ func TestForgeAndOpenToken(t *testing.T) {
 }
 
 func TestDuration(t *testing.T) {
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, variable.TOKEN_SECRET, "1234")
-	ctx = context.WithValue(ctx, variable.TOKEN_DURATION, "2000")
+	secret := []byte("1234")
+	duration := time.Millisecond * 100000000
+	config := JwtConfig{secret, duration}
 
-	jwt, err := Init(ctx)
+	jwt, err := Init(config)
 	if err != nil {
 		t.Fatal(err)
 	}
