@@ -11,6 +11,8 @@ import (
 	"github.com/talenthandongsite/server-auth/pkg/jwt"
 )
 
+const RUNNER string = "handler"
+
 type Handler struct {
 	Repo *repo.UserRepo
 	Jwt  *jwt.Jwt
