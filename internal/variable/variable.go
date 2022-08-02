@@ -19,6 +19,7 @@ const (
 	DB_NAME        Env = "DB_NAME"
 	TOKEN_SECRET   Env = "TOKEN_SECRET"
 	TOKEN_DURATION Env = "TOKEN_DURATION"
+	GOOGLE_API_KEY Env = "GOOGLE_API_KEY"
 )
 
 func Init() (ctx context.Context, err error) {
@@ -33,6 +34,7 @@ func Init() (ctx context.Context, err error) {
 	ctx = loadEnv(ctx, DB_NAME)
 	ctx = loadEnv(ctx, TOKEN_SECRET)
 	ctx = loadEnv(ctx, TOKEN_DURATION)
+	ctx = loadEnv(ctx, GOOGLE_API_KEY)
 
 	return ctx, nil
 }

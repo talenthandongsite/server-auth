@@ -34,6 +34,11 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	mailclient, err := durable.InitMailClient(serverStartUpCtx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	mailclient.Test()
 
 	repository := repo.InitUserRepo(serverStartUpCtx, dbclient)
 	handler := handler.Init(serverStartUpCtx, repository, jwtService)

@@ -30,6 +30,7 @@ func Init(repo *repo.UserRepo, jwt *jwt.Jwt) *AdminHandler {
 // For example, there are some endpoints under it:
 // - /admin/user: administrative api endpoint of user.
 // - /admin/user/:userid/keychain/:keytype: administrative api endpoint of each user's keychain
+// - /admin/issuesignuplink:
 // Job of this function is parse request and pass it to appropirate handler
 func (h *AdminHandler) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
@@ -50,7 +51,12 @@ func (h *AdminHandler) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, repo.UserId{}, userId) //http 요청이 끝날때까지 값을 가지고있음
 	}
 
-	if slice[2] != "user" {
+	if strings.ToLower(slice[2]) == "issuesignuplink" {
+		h.HandleIssueSignupLink(ctx, w, r)
+		return
+	}
+
+	if strings.ToLower(slice[2]) != "user" {
 		err := errors.New(RUNNER + ": not found")
 		response.JSONError(w, err, http.StatusNotFound)
 		return
